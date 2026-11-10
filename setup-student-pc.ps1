@@ -1,18 +1,18 @@
-# Запускать на каждом компьютере класса (обычный PowerShell, права админа не нужны).
-# Предварительно в VS Code должно быть установлено расширение Continue (Continue.continue).
+# Run on each classroom PC. No admin rights needed.
 $server = "http://192.168.110.100:20128/v1"
 $key    = "sk-5c59bf4db5544923-fe1060-36a5a7d1"
 
-# 1. Проверка доступа к серверу
+Write-Host "Checking server $server ..."
 try {
   Invoke-RestMethod -Uri "$server/models" -Headers @{Authorization="Bearer $key"} -TimeoutSec 10 | Out-Null
-  Write-Host "Сервер доступен" -ForegroundColor Green
+  Write-Host "OK: server is reachable" -ForegroundColor Green
 } catch {
-  Write-Host "Нет доступа к $server : $($_.Exception.Message)" -ForegroundColor Red
+  Write-Host "ERROR: cannot reach server: $($_.Exception.Message)" -ForegroundColor Red
+  Write-Host "Check: server IP, firewall on the server (port 20128), same network."
+  Read-Host "Press Enter to close"
   exit 1
 }
 
-# 2. Конфиг Continue
 $dir = Join-Path $env:USERPROFILE ".continue"
 New-Item -ItemType Directory -Force $dir | Out-Null
 $cfg = @"
@@ -28,4 +28,6 @@ models:
     roles: [chat, edit, apply]
 "@
 Set-Content -Path (Join-Path $dir "config.yaml") -Value $cfg -Encoding utf8
-Write-Host "Готово: перезапустите VS Code. Модель: Free Coding AI" -ForegroundColor Green
+Write-Host "DONE: config written to $dir\config.yaml" -ForegroundColor Green
+Write-Host "Restart VS Code. Model name: Free Coding AI"
+Read-Host "Press Enter to close"
